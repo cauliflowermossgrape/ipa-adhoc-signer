@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Ad Hoc Share - Copyright (C) 2026 cauliflowermossgrape
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """
 adhoc_share.py - Ad Hoc sign an IPA for a friend's iPhone and host an
 over-the-air install link on a public HTTPS URL.
