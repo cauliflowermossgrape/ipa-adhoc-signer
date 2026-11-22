@@ -270,3 +270,14 @@ assets/                 app icon (regenerate with scripts/make_icon.py)
 - Only distribute apps you have the rights to distribute. Ad Hoc distribution
   is intended for testing on a limited number of registered devices.
 - This project isn't affiliated with Apple or Cloudflare.
+
+---
+
+## License
+
+Copyright (C) 2026 cauliflowermossgrape
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the **GNU General Public License v3.0** as published by the Free
+Software Foundation. It is distributed WITHOUT ANY WARRANTY. See
+[`LICENSE`](LICENSE) for the full text.
