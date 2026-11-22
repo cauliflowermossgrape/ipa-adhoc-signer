@@ -1,13 +1,24 @@
-# Ad Hoc Share
+# Ad Hoc Share: Sign and Install IPA Files on iPhone Remotely (No Mac)
 
 Send an iOS app (`.ipa`) to a friend's iPhone **remotely**, signed with your
 own paid Apple Developer account, so it keeps working for **about a year**.
 No Mac, no Xcode, no TestFlight 90-day expiry.
 
-You fill in a small window, click **Sign & Host**, and get a link. Your friend
-opens it in Safari on their iPhone and taps **Install**.
+You fill in a small window, click **Sign and share**, and get a link. Your
+friend opens it in Safari on their iPhone and taps **Install**.
 
-Runs on **Windows**, **Linux** and **macOS**.
+Runs on **Windows** and **Linux**. macOS should work from source but is untested.
+
+## Download
+
+Get the latest build from the **[Releases](../../releases)** page:
+
+| OS | File | How to run |
+|---|---|---|
+| Windows 10/11 | `AdHocShare-windows-x64.exe` | Double-click it. If SmartScreen warns, click **More info → Run anyway** (the exe isn't code-signed). |
+| Linux x86_64 | `AdHocShare-linux-x86_64` | `chmod +x AdHocShare-linux-x86_64 && ./AdHocShare-linux-x86_64` |
+
+No Python needed for these. To run from source instead, see [Run from source](#run-from-source).
 
 ---
 
@@ -24,8 +35,8 @@ Runs on **Windows**, **Linux** and **macOS**.
    [Cloudflare quick tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/)
    (`https://something.trycloudflare.com`, no Cloudflare account needed).
 
-The first run downloads `rcodesign` and `cloudflared` into `tools/`, unless
-they're already on your PATH.
+The first run downloads `rcodesign` and `cloudflared` into the
+[data folder](#where-your-data-is-stored), unless they're already on your PATH.
 
 ---
 
@@ -34,7 +45,7 @@ they're already on your PATH.
 | You need | Notes |
 |---|---|
 | A **paid** Apple Developer Program membership | $99/year. Free Apple IDs can't make Ad Hoc profiles. |
-| **Python 3.9+** with tkinter | Windows: install from [python.org](https://www.python.org/downloads/) (tkinter is included). Linux: e.g. `sudo apt install python3 python3-venv python3-tk`. |
+| Python 3.9+ with tkinter, **only if running from source** | Windows: [python.org](https://www.python.org/downloads/) (tkinter included). Linux: `sudo apt install python3 python3-venv python3-tk` (Fedora: `python3-tkinter`, Arch: `tk`). |
 | An App Store Connect **API key** (`.p8`) | See [Step 1](#step-1--create-an-app-store-connect-api-key). |
 | Your friend's **UDID** | See [Step 2](#step-2--get-your-friends-udid). |
 | A **decrypted** IPA | IPAs pulled straight from the App Store are encrypted and will crash. |
@@ -104,35 +115,28 @@ only frees its slot when your membership renews.
 
 ## Step 3 - Run it
 
-**Windows:** double-click **`run.bat`**.
-
-**Linux / macOS:**
-```bash
-chmod +x run.sh
-./run.sh
-```
-
-The first launch creates a `.venv` and installs dependencies (about a minute).
-Then the window opens:
+Open the app (see [Download](#download)) and fill in the window:
 
 | Field | What to enter |
 |---|---|
 | Issuer ID | From Step 1 (remembered after the first run) |
-| Key ID | Filled in automatically when you pick the `.p8` |
-| Private key (.p8) | Your `AuthKey_XXXXXXXXXX.p8` |
-| IPA file | The app to send |
-| Friend's UDID | From Step 2 |
+| API key file | Your `AuthKey_XXXXXXXXXX.p8`. Click **Choose…**. |
+| Key ID | Filled in automatically from the file name |
+| IPA file | The app to send. The window shows its name, version, bundle ID and minimum iOS. |
+| New bundle ID | Leave empty, unless Apple says the bundle ID is taken (see Troubleshooting) |
+| UDID | From Step 2. The window tells you if it looks valid. |
 | Device name | Any label, e.g. "Alex's iPhone". It's only a name in your account. |
-| New bundle ID | Leave empty, unless you get a bundle-ID error (see Troubleshooting) |
 
-Click **Sign & Host**. When it finishes you'll see a link like
-`https://random-words.trycloudflare.com`, which you can copy and send to your friend.
+Click **Sign and share**. Progress shows at the bottom of the window, and
+**Show details** opens the full log. When it finishes, a green panel shows a
+link like `https://random-words.trycloudflare.com` with **Copy link** and
+**Open** buttons. Send that link to your friend.
 
 **Keep the window open until your friend has installed the app.** The link
-stops working when you close it, but the installed app keeps working until the
-profile expires (about 1 year).
+stops working when you close the window or click **Stop sharing**, but the
+installed app keeps working until the profile expires (about 1 year).
 
-A signed copy of the IPA is also saved next to the script as `<App>-adhoc.ipa`.
+A signed copy of the IPA is saved next to the original as `<name>-adhoc.ipa`.
 
 ### Adding another friend later
 
@@ -163,8 +167,10 @@ in the app's `Info.plist`).
 | **App closes immediately on launch** | Most often the IPA is still **encrypted** (pulled from the App Store), so use a decrypted IPA. Otherwise get the crash log: iPhone **Settings → Privacy & Security → Analytics & Improvements → Analytics Data → `AppName-….ips`**. |
 | **Bundle ID error** ("already exists" / "not available") | The ID belongs to another developer team. Enter your own in **New bundle ID**, e.g. `com.yourname.appname`. Extensions are renamed to match automatically. |
 | **Certificate limit reached** | Apple allows only a few distribution certificates. Revoke an unused one at developer.apple.com → Certificates. Apps signed with a revoked certificate stop launching. |
-| **Python was not found** (Windows) | `run.bat` looks for a real Python install and skips the Microsoft Store stub. Install Python from python.org. |
-| **The window doesn't open on WSL** | WSL often has no display. Run `run.bat` from Windows instead. |
+| **Windows SmartScreen blocks the exe** | The exe isn't code-signed. Click **More info → Run anyway**, or run from source. |
+| **Python was not found** (Windows, from source) | `run.bat` looks for a real Python install and skips the Microsoft Store stub. Install Python from python.org. |
+| **"tkinter is missing"** (Linux, from source) | `sudo apt install python3-tk` (Fedora: `python3-tkinter`, Arch: `tk`). |
+| **The window doesn't open on WSL** | WSL often has no display. Use the Windows exe or `run.bat` instead. |
 | **Link doesn't load** | The window must stay open, and each run creates a new link, so send the latest one. |
 
 ---
@@ -181,21 +187,81 @@ To go past a year, run the tool again and have your friends reinstall from the n
 
 ---
 
-## Files
+## Where your data is stored
+
+Settings, your **distribution certificate's private key**, and the downloaded
+tools live in a per-user folder, never next to the app:
+
+| OS | Folder |
+|---|---|
+| Windows | `%APPDATA%\AdHocShare` |
+| Linux | `~/.local/share/adhoc-share` (or `$XDG_DATA_HOME/adhoc-share`) |
+| macOS | `~/Library/Application Support/AdHocShare` |
+
+Keep this folder private, and back it up if you want to keep reusing the same
+certificate. Set the `ADHOC_DATA_DIR` environment variable to use a different
+folder.
+
+If you used an older version that stored data in `adhoc_data/` next to the
+script, running from source copies it into the new folder automatically. Your
+existing certificate keeps working.
+
+Other environment variables:
+- `ADHOC_ISSUER_ID` pre-fills the Issuer ID.
+- `ADHOC_THEME=light` or `dark` overrides the system light/dark setting.
+
+---
+
+## Run from source
+
+**Windows:** double-click **`run.bat`**.
+
+**Linux / macOS:**
+```bash
+chmod +x run.sh
+./run.sh
+```
+
+The first launch creates a virtual environment and installs dependencies
+(about a minute). Later launches open straight away.
+
+---
+
+## Building the executables
+
+```bash
+python -m pip install -r requirements.txt -r requirements-build.txt
+python build.py
+```
+
+The executable lands in `dist/`, named for the OS you built on. PyInstaller
+can't cross-compile, so build the Windows exe on Windows and the Linux binary on Linux.
+
+On Linux, build with a Python whose Tk supports Xft (distro Python with
+`python3-tk`, or conda-forge `tk=*=xft*`). Otherwise the app renders in blurry
+bitmap fonts.
+
+### Releasing
+
+Push a version tag and GitHub Actions builds both executables and attaches
+them to a **draft release** ([`.github/workflows/release.yml`](.github/workflows/release.yml)):
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Review the draft on the Releases page, then publish it.
+
+### Project layout
 
 ```
-adhoc_share.py      the app
-run.bat / run.sh    launchers (create .venv on first run)
-requirements.txt    Python dependencies
-adhoc_data/         created at runtime, PRIVATE: certificate private key, settings
-tools/              created at runtime: rcodesign, cloudflared
+adhoc_share.py          the app (single file)
+run.bat / run.sh        run from source (create a venv on first run)
+build.py                build a single-file executable with PyInstaller
+assets/                 app icon (regenerate with scripts/make_icon.py)
+.github/workflows/      release build
 ```
-
-`adhoc_data/` contains your **distribution certificate's private key**. Keep it
-private and back it up if you want to keep reusing the same certificate.
-
-Optional: set the `ADHOC_ISSUER_ID` environment variable to pre-fill the
-Issuer ID.
 
 ---
 

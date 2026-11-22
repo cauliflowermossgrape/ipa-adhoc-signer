@@ -11,5 +11,11 @@ adhoc_data/
 # Downloaded tools and environment
 tools/
 .venv/
+.venv-linux/
 __pycache__/
 *.pyc
+
+# Build output
+build/
+dist/
+*.spec

@@ -1,0 +1,55 @@
+name: Build release
+
+# Push a tag like v1.0.0 to build Windows + Linux executables and attach them
+# to a draft GitHub release. Can also be run manually from the Actions tab.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-22.04]  # 22.04 = older glibc, runs on more distros
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Tk (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y python3-tk tk-dev
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt -r requirements-build.txt
+
+      - name: Build
+        run: python build.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AdHocShare-${{ runner.os }}
+          path: dist/*
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: dist/*
+          generate_release_notes: true
