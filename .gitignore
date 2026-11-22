@@ -1,0 +1,15 @@
+# Secrets and per-user state - never commit these
+adhoc_data/
+*.p8
+*.pem
+*.p12
+*.mobileprovision
+
+# Apps (signed output and inputs)
+*.ipa
+
+# Downloaded tools and environment
+tools/
+.venv/
+__pycache__/
+*.pyc
